@@ -1,66 +1,53 @@
 const Project = require('../models/Project');
 
-// Create Project
+
+// Create a new project
 exports.createProject = async (req, res) => {
-    const { name, description } = req.body;
-    try {
-        const newProject = await Project.create({ name, description, members: [req.user.id] });
-        res.status(201).json(newProject);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  const project = new Project(req.body);
+  try {
+    const savedProject = await project.save();
+    res.status(201).json(savedProject);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-// Get All Projects
-exports.getProjects = async (req, res) => {
-    try {
-        const projects = await Project.find({ members: req.user.id });
-        res.json(projects);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+// Get all projects
+exports.getAllProjects = async (req, res) => {
+  try {
+    const projects = await Project.find().populate('members').populate('tasks');
+    res.json(projects);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-// Update Project
+// Get a project by ID
+exports.getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id).populate('members').populate('tasks');
+    res.json(project);
+  } catch (err) {
+    res.status(404).json({ message: 'Project not found' });
+  }
+};
+
+// Update a project
 exports.updateProject = async (req, res) => {
-    const { id } = req.params;
-    const { name, description, status, progress } = req.body;
-    try {
-        const updatedProject = await Project.findByIdAndUpdate(id, { name, description, status, progress }, { new: true });
-        res.json(updatedProject);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    const updatedProject = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedProject);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-// Delete Project
+// Delete a project
 exports.deleteProject = async (req, res) => {
-    const { id } = req.params;
-    try {
-        await Project.findByIdAndDelete(id);
-        res.status(204).send();
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Add Member to Project
-exports.addMember = async (req, res) => {
-    const { id } = req.params;
-    const { memberId } = req.body; // Assuming memberId is passed in the request body
-    try {
-        const project = await Project.findById(id);
-        if (!project) return res.status(404).json({ message: "Project not found." });
-
-        // Check if the member is already in the project
-        if (project.members.includes(memberId)) {
-            return res.status(400).json({ message: "Member already added to the project." });
-        }
-
-        project.members.push(memberId);
-        await project.save();
-        res.json(project);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    await Project.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    res.status(404).json({ message: 'Project not found' });
+  }
 };

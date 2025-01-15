@@ -1,53 +1,92 @@
 const Task = require('../models/Task');
-const { sendEmailNotification, logNotification } = require('./notificationService');
+const { sendEmailNotification } = require('./notificationService'); // Importer le service de notification
+const axios = require('axios');
 
-// Create Task
+// Create a new task
 exports.createTask = async (req, res) => {
-    const { title, description, priority } = req.body;
-    const userId = req.user.id; // Get userId from the authenticated user
-    try {
-        const newTask = await Task.create({ title, description, userId, priority });
-        
-        // Notify the user about the new task
-        logNotification(`User  ${userId} has a new task: ${newTask.title}`);
-        sendEmailNotification(req.user.email, 'New Task Created', `You have created a new task: ${newTask.title}`);
-        
-        res.status(201).json(newTask);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  const task = new Task(req.body);
+  try {
+    const savedTask = await task.save();
+  
+
+ // Fetch member details from the Member service
+ const memberResponse = await axios.get(`http://localhost:3003/api/members/${savedTask.assignedTo}`);
+ const memberDetails = memberResponse.data;
+
+ // Send notification email
+ sendEmailNotification(
+   memberDetails.email,
+   'New Task Assigned',
+   `You have been assigned a new task: ${savedTask.title}`
+ );
+
+    res.status(201).json(savedTask);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-// Update Task
+// Get all tasks
+exports.getAllTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find(); // Fetch all tasks and populate assignedTo field
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: 'No tasks found' }); // Handle case where no tasks are found
+    }
+
+    // Respond with the tasks, including the assignedTo field
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message }); // Handle any errors
+  }
+};
+
+// Get a task by ID
+exports.getTaskById = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id); // Fetch task from the database
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Respond with the task as is, including the assignedTo field (idMember)
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// Update a task
 exports.updateTask = async (req, res) => {
-    const { id } = req.params;
-    const { title, description, status, priority } = req.body;
-    try {
-        const updatedTask = await Task.findByIdAndUpdate(id, { title, description, status, priority }, { new: true });
-        
-        // Notify the user about the task update
-        logNotification(`User  ${updatedTask.userId} has updated the task: ${updatedTask.title}`);
-        sendEmailNotification(req.user.email, 'Task Updated', `Your task has been updated: ${updatedTask.title}`);
-        
-        res.json(updatedTask);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+    // Send notification email to the assigned user
+    sendEmailNotification(updatedTask.assignedTo, 'Tâche mise à jour', `La tâche a été mise à jour : ${updatedTask.title}`);
+ // Fetch member details from the Member service
+ const memberResponse = await axios.get(`http://localhost:3003/api/members/${updatedTask.assignedTo}`);
+ const memberDetails = memberResponse.data;
+
+ // Send notification email
+ sendEmailNotification(
+   memberDetails.email,
+   'Tâche mise à jour', `La tâche a été mise à jour : ${updatedTask.title}`
+ );
+    res.json(updatedTask);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-// Delete Task
+// Delete a task
 exports.deleteTask = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const task = await Task.findById(id);
-        await Task.findByIdAndDelete(id);
-        
-        // Notify the user about the task deletion
-        logNotification(`Task with ID ${id} has been deleted.`);
-        sendEmailNotification(req.user.email, 'Task Deleted', `Your task has been deleted: ${task.title}`);
-        
-        res.status(204).send();
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    await Task.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    res.status(404).json({ message: 'Task not found' });
+  }
 };

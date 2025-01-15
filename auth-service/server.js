@@ -1,19 +1,23 @@
 const express = require('express');
-const connectDB = require('./config/db');
-const userRoutes = require('./routes/user');
+const path = require('path');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const userRoutes = require('./routes/userRoutes');
 const cors = require('cors');
-require('dotenv').config();
-
+dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json()); // Middleware to parse JSON bodies
+app.use(cors({ origin: 'http://localhost:1000' }));
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-connectDB(); // Calling the DB connection
-app.use(cors());
-app.use(express.json());
-
-// Routes
+// Use user routes
 app.use('/api/users', userRoutes);
 
-app.listen(PORT, () => {
-    console.log(`User  service running on port ${PORT}`);
-});
+  
+  // Start the server
+  app.listen(3000, () => {
+    console.log('Server running on http://localhost:3000');
+  });
