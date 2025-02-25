@@ -1,12 +1,10 @@
 const express = require('express');
-const { generateReport, getReports } = require('../controllers/reportController');
-const auth = require('../middleware/auth');
 const router = express.Router();
+const reportController = require('../controllers/reportController'); // Import du contrôleur
+const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
 
-// Generate a report
-router.post('/', auth, generateReport);
-
-// Get reports for a project
-router.get('/:projectId', auth, getReports);
+// Routes
+router.get('/projects/statistics', reportController.getProjectStatistics);
+router.get('/tasks/statistics', reportController.getTaskStatistics);
 
 module.exports = router;

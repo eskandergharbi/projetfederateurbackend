@@ -1,70 +1,79 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const Project = require('./models/project.model');
-const Task = require('./models/task.model');
-
+const reportRoutes = require('./routes/report');
+const promClient = require('prom-client'); // Importer le client Prometheus
+require('./tracing'); // Initialiser le tracing avant de démarrer le service
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3006;
+const Consul = require('consul');
+const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27017/project-tracking', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+// Créer des métriques pour Prometheus
+const register = new promClient.Registry();
+
+// Définir des métriques
+const httpRequestDurationMicroseconds = new promClient.Histogram({
+    name: 'http_request_duration_seconds',
+    help: 'Durée des requêtes HTTP',
+    labelNames: ['method', 'status_code'],
+    buckets: [0.1, 0.2, 0.3, 0.5, 1, 2, 5], // Intervalles de durée
+});
+
+// Ajouter cette métrique au registre de Prometheus
+register.registerMetric(httpRequestDurationMicroseconds);
+
+// Enregistrer le registre par défaut
+promClient.collectDefaultMetrics({ register });
+
+// Endpoint pour exposer les métriques de Prometheus
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+});
+
+// Créer un client Consul pour l'enregistrement du service
+const consul = new Consul();
+consul.agent.service.register({
+  name: 'report-service',
+  id: '6',
+  tags: ['api', 'v1'],
+  port: 3006,
+  check: {
+    http: `http://localhost:${PORT}/health`,
+    interval: '10s',
+  }
+}, (err) => {
+  if (err) {
+    console.error('❌ Erreur lors de l\'enregistrement du service :', err);
+  } else {
+    console.log(`✅ Service enregistré dans Consul`);
+  }
+});
+
+// Endpoint de vérification de la santé
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// Middleware pour mesurer la durée des requêtes
+app.use(async (req, res, next) => {
+    const end = httpRequestDurationMicroseconds.startTimer();
+    res.on('finish', () => {
+        end({ method: req.method, status_code: res.statusCode });
+    });
+    next();
+});
+mongoose.connect('mongodb://localhost:27017/task_management')
+  .then(() => console.log('Connexion réussie'))
+  .catch(err => console.error('Erreur de connexion:', err));
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// Create a new project
-app.post('/api/projects', async (req, res) => {
-  const project = new Project(req.body);
-  await project.save();
-  res.status(201).json(project);
-});
+// Routes
+app.use('/api/reports', reportRoutes);
 
-// Get all projects
-app.get('/api/projects', async (req, res) => {
-  const projects = await Project.find().populate('tasks');
-  res.json(projects);
-});
-
-// Create a new task
-app.post('/api/tasks', async (req, res) => {
-  const task = new Task(req.body);
-  await task.save();
-  await Project.findByIdAndUpdate(req.body.projectId, { $push: { tasks: task._id } });
-  res.status(201).json(task);
-});
-
-// Get all tasks for a project
-app.get('/api/projects/:projectId/tasks', async (req, res) => {
-  const tasks = await Task.find({ projectId: req.params.projectId });
-  res.json(tasks);
-});
-
-// Get project statistics
-app.get('/api/projects/statistics', async (req, res) => {
-  const projects = await Project.find().populate('tasks');
-  const projectStats = projects.map(project => ({
-    name: project.name,
-    status: project.status,
-    progress: project.progress,
-    taskCount: project.tasks.length,
-    completedTasks: project.tasks.filter(task => task.status === 'completed').length,
-    inProgressTasks: project.tasks.filter(task => task.status === 'in progress').length,
-    notStartedTasks: project.tasks.filter(task => task.status === 'not started').length,
-  }));
-  res.json(projectStats);
-});
-
-// Get task statistics
-app.get('/api/tasks/statistics', async (req, res) => {
-  const tasks = await Task.find();
-  const taskStats = {
-    totalTasks: tasks.length,
-    completedTasks:tasks.filter(task => task.status === 'completed').length,
-    inProgressTasks: tasks.filter(task => task.status === 'in progress').length,
-    notStartedTasks: tasks.filter(task => task.status === 'not started').length,
-  };
-  res.json(taskStats);
+app.listen(PORT, () => {
+    console.log(`🚀 Report Service en cours d'exécution sur le port ${PORT}`);
 });

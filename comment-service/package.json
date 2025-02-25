@@ -10,9 +10,20 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-jaeger": "^1.30.1",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.57.1",
+    "@opentelemetry/instrumentation-express": "^0.47.0",
+    "@opentelemetry/instrumentation-http": "^0.57.1",
+    "@opentelemetry/instrumentation-mongoose": "^0.46.0",
+    "@opentelemetry/sdk-node": "^0.57.1",
     "body-parser": "^1.20.3",
+    "consul": "^2.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.9.5"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "opossum": "^8.4.0",
+    "prom-client": "^15.1.3"
   }
 }

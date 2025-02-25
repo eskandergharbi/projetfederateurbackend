@@ -1,92 +1,120 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  mongo-auth:
-    image: mongo
-    ports:
-      - "27017:27017"
-
-  mongo-projects:
-    image: mongo
-    ports:
-      - "27018:27017"
-
-  mongo-tasks:
-    image: mongo
-    ports:
-      - "27019:27017"
-
-  mongo-reports:
-    image: mongo
-    ports:
-      - "27020:27017"
-
-  mongo-chat:
-    image: mongo
-    ports:
-      - "27021:27017"
-
   auth-service:
-    build:
-      context: ./auth-service
+    build: ./auth-service
     ports:
-      - "3000:3000"
+      - "3100:3100"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - mongo-auth
+      - mongo
+      - consul
+    networks:
+      - microservices-network
 
   project-service:
-    build:
-      context: ./project-service
+    build: ./project-service
     ports:
-      - "3001:3001"
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - mongo-projects
-
-  task-service:
-    build:
-      context: ./task-service
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+        project-service:
+    build: ./project-service
     ports:
-      - "3002:3002"
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - mongo-tasks
-
-  report-service:
-    build:
-      context: ./report-service
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+        project-service:
+    build: ./project-service
     ports:
-      - "3003:3003"
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - mongo-reports
-
-  collaboration-service:
-    build:
-      context: ./collaboration-service
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+        project-service:
+    build: ./project-service
     ports:
-      - "3004:3004"
-    
-  gateway:
-    build:
-      context: ./gateway
-    ports:
-      - "3005:3005"
-
-  service-registry:
-    build:
-      context: ./service-registry
-    ports:
-      - "3006:3006"   
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - auth-service
-      - project-service
-      - task-service
-      - report-service
-      - collaboration-service
-
-  nginx:
-    image: nginx
-    volumes:
-      - ../frontend/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+        project-service:
+    build: ./project-service
     ports:
-      - "80:80"
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - gateway
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+        project-service:
+    build: ./project-service
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+        project-service:
+    build: ./project-service
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+      - consul  # Ajout de la dépendance à Consul
+    networks:
+      - microservices-network
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    networks:
+      - microservices-network
+
+  consul:
+    image: hashicorp/consul:latest
+    container_name: consul-server
+    ports:
+      - "8500:8500"
+    networks:
+      - microservices-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:

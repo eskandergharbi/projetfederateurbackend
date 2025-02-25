@@ -1,0 +1,39 @@
+version: "3"
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - KEYCLOAK_REALM=myrealm
+      - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080/auth
+      - KEYCLOAK_CLIENT_ID=api-gateway
+      - KEYCLOAK_CLIENT_SECRET=your-client-secret
+      - HOSTNAME=api-gateway
+    depends_on:
+      - keycloak
+      - eureka
+    networks:
+      - microservices-network
+
+  keycloak:
+    image: jboss/keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+    networks:
+      - microservices-network
+
+  eureka:
+    image: steeltoeoss/eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

@@ -1,11 +1,10 @@
 const Comment = require('../models/Comment');
 
-// Create a new comment
+// ➤ Ajouter un commentaire
 exports.createComment = async (req, res) => {
-    const { taskId, userId, text } = req.body;
-    const comment = new Comment({ taskId, userId, text });
-
     try {
+        const { taskId, userId, text } = req.body;
+        const comment = new Comment({ taskId, userId, text });
         const savedComment = await comment.save();
         res.status(201).json(savedComment);
     } catch (err) {
@@ -13,7 +12,7 @@ exports.createComment = async (req, res) => {
     }
 };
 
-// Get comments for a specific task
+// ➤ Obtenir les commentaires d'une tâche
 exports.getCommentsByTaskId = async (req, res) => {
     try {
         const comments = await Comment.find({ taskId: req.params.taskId });
@@ -23,7 +22,7 @@ exports.getCommentsByTaskId = async (req, res) => {
     }
 };
 
-// Delete a comment
+// ➤ Supprimer un commentaire
 exports.deleteComment = async (req, res) => {
     try {
         const deletedComment = await Comment.findByIdAndDelete(req.params.id);

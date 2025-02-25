@@ -1,5 +1,5 @@
 # Utiliser l'image de base Node.js version 14
-FROM node:22.12.0
+FROM node:v18.20.5
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /usr/src/app
@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Exposer le port 3000
-EXPOSE 3000
+EXPOSE 3001
 
 # Commande pour démarrer l'application
 CMD ["node", "server.js"]

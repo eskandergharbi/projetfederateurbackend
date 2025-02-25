@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const commentController = require('../controllers/commentController');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
-// Create a new comment
+// ➤ Ajouter un commentaire
 router.post('/', commentController.createComment);
 
-// Get comments by task ID
+// ➤ Obtenir les commentaires d'une tâche
 router.get('/task/:taskId', commentController.getCommentsByTaskId);
 
-// Delete a comment
+// ➤ Supprimer un commentaire
 router.delete('/:id', commentController.deleteComment);
 
 module.exports = router;

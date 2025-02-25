@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const TaskSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true,
+        required: false,
     },
     description: {
         type: String,
-        required: true,
+        required: false,
     },
     assignedTo: {
         type: mongoose.Schema.Types.ObjectId,

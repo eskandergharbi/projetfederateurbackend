@@ -5,6 +5,8 @@ exports.createMember = async (req, res) => {
   const member = new Member(req.body);
   try {
     const savedMember = await member.save();
+    console.log(savedMember);
+    
     res.status(201).json(savedMember);
   } catch (err) {
     if (err.code === 11000) { // MongoDB duplicate key error code
