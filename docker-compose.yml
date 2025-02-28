@@ -1,120 +1,57 @@
-version: "3.8"
 
 services:
   auth-service:
-    build: ./auth-service
+    build:
+      context: ./auth-service  # Path to the directory containing the Dockerfile for app1
+      dockerfile: Dockerfile  # Name of the Dockerfile (if it's named Dockerfile)
+    image: microservice-auth-service  # Custom image name for app1
     ports:
-      - "3100:3100"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul
-    networks:
-      - microservices-network
+      - "3100:3100"  # Map host port 3100 to container port 3100
+
+  collaboration-service:
+    build:
+      context: ./collaboration-service  # Path to the directory containing the Dockerfile for app2
+      dockerfile: Dockerfile
+    image: microservice-collaboration-service  # Custom image name for app2
+    ports:
+      - "5050:5050"  # Map host port 5050 to container port 5050
+
+  comment-service:
+    build:
+      context: ./comment-service  # Path to the directory containing the Dockerfile for app3
+      dockerfile: Dockerfile
+    image: microservice-comment-service  # Custom image name for app3
+    ports:
+      - "3007:3007"  # Map host port 3007 to container port 3007
+
+  member-service:
+    build:
+      context: ./member-service  # Path to the directory containing the Dockerfile for app4
+      dockerfile: Dockerfile
+    image: microservice-member-service  # Custom image name for app4
+    ports:
+      - "3003:3003"  # Map host port 3003 to container port 3003
 
   project-service:
-    build: ./project-service
+    build:
+      context: ./project-service  # Path to the directory containing the Dockerfile for app5
+      dockerfile: Dockerfile
+    image: microservice-project-service  # Custom image name for app5
     ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
-        project-service:
-    build: ./project-service
-    ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
-        project-service:
-    build: ./project-service
-    ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
-        project-service:
-    build: ./project-service
-    ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
-        project-service:
-    build: ./project-service
-    ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
-        project-service:
-    build: ./project-service
-    ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
-        project-service:
-    build: ./project-service
-    ports:
-      - "4001:4001"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
-      - consul  # Ajout de la dépendance à Consul
-    networks:
-      - microservices-network
+      - "3012:3012"  # Map host port 3012 to container port 3012
 
-  mongo:
-    image: mongo:6.0
-    container_name: mongo-db
+  report-service:
+    build:
+      context: ./report-service  # Path to the directory containing the Dockerfile for app6
+      dockerfile: Dockerfile
+    image: microservice-report-service  # Custom image name for app6
     ports:
-      - "27017:27017"
-    networks:
-      - microservices-network
+      - "3006:3006"  # Map host port 3006 to container port 3006
 
-  consul:
-    image: hashicorp/consul:latest
-    container_name: consul-server
+  task-service:
+    build:
+      context: ./task-service  # Path to the directory containing the Dockerfile for app7
+      dockerfile: Dockerfile
+    image: microservice-task-service  # Custom image name for app7
     ports:
-      - "8500:8500"
-    networks:
-      - microservices-network
-
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: jaeger
-    ports:
-      - "16686:16686"
-      - "4318:4318"
-    networks:
-      - microservices-network
-
-networks:
-  microservices-network:
+      - "3010:3010"  # Map host port 3010 to container port 3010
