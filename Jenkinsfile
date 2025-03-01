@@ -1,42 +1,45 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18'  // Utilisation d'une image Docker avec Node.js préinstallé
+            args '--privileged'  // Optionnel, si tu as besoin de privilèges supplémentaires
+        }
+    }
+
     environment {
         DOCKER_HUB_USERNAME = "eskandergharbi"
-        DOCKER_HUB_PASSWORD = credentials('docker-hub-password') // Stocké dans Jenkins
-        HEROKU_API_KEY = credentials('heroku-api-key') // Stocké dans Jenkins
-        HEROKU_APP_BACKEND = "nom-de-votre-app-backend"
+        DOCKER_HUB_PASSWORD = credentials('docker-hub-password') // Credentials Jenkins
+        HEROKU_API_KEY = credentials('heroku-api-key') // Credentials Jenkins
+        HEROKU_APP_BACKEND = "nom-de-ton-app-backend"
     }
+
     stages {
         stage('Mettre à jour le dépôt Backend') {
             steps {
                 script {
                     if (fileExists('backend/.git')) {
-                        // Si le dépôt existe déjà, on récupère la dernière version
                         dir('backend') {
-                            sh 'git reset --hard' // Réinitialiser les modifications locales
-                            sh 'git pull origin main' // Met à jour avec la dernière version
+                            sh 'git reset --hard'
+                            sh 'git pull origin main'
                         }
                     } else {
-                        // Sinon, on clone le dépôt pour la première fois
                         sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git backend'
                     }
                 }
             }
         }
+
         stage('Installer dépendances & Tester Backend') {
             steps {
                 script {
                     dir('backend') {
-                        sh 'curl -fsSL https://deb.nodesource.com/setup_18 | bash -' // Installe Node.js 18
-                        sh 'apt-get install -y nodejs' // Installe Node.js et npm
-                        sh 'node -v' // Vérifie la version de Node.js
-                        sh 'npm -v' // Vérifie la version de npm
-                        sh 'npm install' // Installe les dépendances
-                        sh 'npm test' // Exécute les tests unitaires
+                        sh 'npm install'  // Installer les dépendances via npm
+                        sh 'npm test'     // Lancer les tests
                     }
                 }
             }
         }
+
         stage('Connexion à Docker Hub et Heroku') {
             steps {
                 script {
@@ -45,6 +48,7 @@ pipeline {
                 }
             }
         }
+
         stage('Docker Build & Push Backend') {
             steps {
                 script {
@@ -55,6 +59,7 @@ pipeline {
                 }
             }
         }
+
         stage('Déployer sur Heroku Backend') {
             steps {
                 script {
@@ -66,6 +71,7 @@ pipeline {
             }
         }
     }
+
     post {
         success {
             echo "✅ Déploiement du Backend réussi sur Heroku ! 🚀"
