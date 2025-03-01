@@ -13,13 +13,11 @@ pipeline {
             steps {
                 script {
                     if (fileExists('backend/.git')) {
-                        // Si le dépôt existe déjà, on récupère la dernière version
                         dir('backend') {
-                            sh 'git reset --hard' // Réinitialiser les modifications locales
-                            sh 'git pull origin main' // Met à jour avec la dernière version
+                            sh 'git reset --hard'
+                            sh 'git pull origin main'
                         }
                     } else {
-                        // Sinon, on clone le dépôt pour la première fois
                         sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git backend'
                     }
                 }
@@ -27,11 +25,16 @@ pipeline {
         }
 
         stage('Installer dépendances & Tester Backend') {
+            agent {
+                docker {
+                    image 'node:18' // Utilise une image Docker avec Node.js 18
+                }
+            }
             steps {
                 script {
                     dir('backend') {
                         sh 'npm install'
-                        sh 'npm test' // Exécute les tests unitaires du backend
+                        sh 'npm test'
                     }
                 }
             }
