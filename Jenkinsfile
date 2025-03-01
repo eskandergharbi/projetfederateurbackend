@@ -9,11 +9,19 @@ pipeline {
     }
 
     stages {
-        stage('Cloner le dépôt Backend') {
+        stage('Mettre à jour le dépôt Backend') {
             steps {
                 script {
-                    // Cloner uniquement le dépôt Backend
-                    sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git backend'
+                    if (fileExists('backend/.git')) {
+                        // Si le dépôt existe déjà, on récupère la dernière version
+                        dir('backend') {
+                            sh 'git reset --hard' // Réinitialiser les modifications locales
+                            sh 'git pull origin main' // Met à jour avec la dernière version
+                        }
+                    } else {
+                        // Sinon, on clone le dépôt pour la première fois
+                        sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git backend'
+                    }
                 }
             }
         }
@@ -21,25 +29,9 @@ pipeline {
         stage('Installer dépendances & Tester Backend') {
             steps {
                 script {
-                    // Exécuter dans un conteneur Docker avec Node.js 18
-                    docker.image('node:18').inside('--user root') {
-                        dir('backend') {
-                            // Vérification des versions de Node.js et npm
-                            sh 'node -v'
-                            sh 'npm -v'
-                            
-                            // Installation des dépendances
-                            sh 'npm install'
-                            
-                            // Exécution des tests unitaires avec gestion des erreurs
-                            try {
-                                sh 'npm test'
-                            } catch (Exception e) {
-                                echo "❌ Erreur lors des tests !"
-                                currentBuild.result = 'FAILURE'
-                                throw e
-                            }
-                        }
+                    dir('backend') {
+                        sh 'npm install'
+                        sh 'npm test' // Exécute les tests unitaires du backend
                     }
                 }
             }
