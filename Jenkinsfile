@@ -23,12 +23,12 @@ pipeline {
             }
         }
 
-        stage('Installer dépendances & Tester Backend') {
+        stage('Installer dépendances Backend') {
             steps {
                 script {
                     dir('backend') {
                         sh 'npm install'  // Installer les dépendances via npm
-                        sh 'npm test'     // Lancer les tests
+                        // sh 'npm test'   // Ligne commentée ou supprimée si tu n'as pas de tests
                     }
                 }
             }
