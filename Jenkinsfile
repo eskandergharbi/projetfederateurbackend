@@ -19,29 +19,26 @@ pipeline {
         }
 
         stage('Installer dépendances & Tester Backend') {
-            agent {
-                docker {
-                    image 'node:18' // Utilise une image Docker avec Node.js 18
-                    args '--user root' // Évite les problèmes de permissions
-                }
-            }
             steps {
                 script {
-                    dir('backend') {
-                        // Vérification des versions de Node.js et npm
-                        sh 'node -v'
-                        sh 'npm -v'
-
-                        // Installation des dépendances
-                        sh 'npm install'
-
-                        // Exécution des tests unitaires avec gestion des erreurs
-                        try {
-                            sh 'npm test'
-                        } catch (Exception e) {
-                            echo "❌ Erreur lors des tests !"
-                            currentBuild.result = 'FAILURE'
-                            throw e
+                    // Exécuter dans un conteneur Docker avec Node.js 18
+                    docker.image('node:18').inside('--user root') {
+                        dir('backend') {
+                            // Vérification des versions de Node.js et npm
+                            sh 'node -v'
+                            sh 'npm -v'
+                            
+                            // Installation des dépendances
+                            sh 'npm install'
+                            
+                            // Exécution des tests unitaires avec gestion des erreurs
+                            try {
+                                sh 'npm test'
+                            } catch (Exception e) {
+                                echo "❌ Erreur lors des tests !"
+                                currentBuild.result = 'FAILURE'
+                                throw e
+                            }
                         }
                     }
                 }
