@@ -1,11 +1,7 @@
 pipeline {
     agent {
-        docker {
-            image 'node:18'  // Utilisation d'une image Docker avec Node.js préinstallé
-            args '--privileged'  // Optionnel, si tu as besoin de privilèges supplémentaires
-        }
+        label 'docker'  // Utilisation d'un label si Docker est installé sur un agent Jenkins spécifique
     }
-
     environment {
         DOCKER_HUB_USERNAME = "eskandergharbi"
         DOCKER_HUB_PASSWORD = credentials('docker-hub-password') // Credentials Jenkins
