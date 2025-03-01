@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'docker'  // Utilisation d'un label si Docker est installé sur un agent Jenkins spécifique
-    }
+    agent any
     environment {
         DOCKER_HUB_USERNAME = "eskandergharbi"
         DOCKER_HUB_PASSWORD = credentials('docker-hub-password') // Credentials Jenkins
