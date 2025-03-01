@@ -27,7 +27,7 @@ pipeline {
             steps {
                 script {
                     dir('backend') {
-                        sh 'curl -fsSL https://deb.nodesource.com/setup_18.x | bash -' // Installe Node.js 18
+                        sh 'curl -fsSL https://deb.nodesource.com/setup_18 | bash -' // Installe Node.js 18
                         sh 'apt-get install -y nodejs' // Installe Node.js et npm
                         sh 'node -v' // Vérifie la version de Node.js
                         sh 'npm -v' // Vérifie la version de npm
