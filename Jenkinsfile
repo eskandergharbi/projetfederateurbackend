@@ -2,8 +2,8 @@ pipeline {
     agent any
     environment {
         DOCKER_HUB_USERNAME = "eskandergharbi"
-        DOCKER_HUB_PASSWORD = credentials('docker-hub-password') // Credentials Jenkins
-        HEROKU_API_KEY = credentials('heroku-api-key') // Credentials Jenkins
+        DOCKER_HUB_PASSWORD = credentials('docker-hub-password')
+        HEROKU_API_KEY = credentials('heroku-api-key')
         HEROKU_APP_BACKEND = "nom-de-ton-app-backend"
     }
 
@@ -11,13 +11,13 @@ pipeline {
         stage('Mettre à jour le dépôt Backend') {
             steps {
                 script {
-                    if (fileExists('backend/.git')) {
-                        dir('backend') {
+                    dir('backend') { // Ensure all git commands are within the 'backend' directory
+                        if (fileExists('.git')) {
                             sh 'git reset --hard'
                             sh 'git pull origin main'
+                        } else {
+                            sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git .' // Clone into the current 'backend' directory
                         }
-                    } else {
-                        sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git backend'
                     }
                 }
             }
@@ -27,8 +27,7 @@ pipeline {
             steps {
                 script {
                     dir('backend') {
-                        sh 'npm install'  // Installer les dépendances via npm
-                        // sh 'npm test'   // Ligne commentée ou supprimée si tu n'as pas de tests
+                        sh 'npm install'
                     }
                 }
             }
