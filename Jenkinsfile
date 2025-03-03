@@ -11,7 +11,7 @@ pipeline {
      stage('Mettre à jour le dépôt Backend') {
     steps {
         script {
-            if (!fileExists('backend')) {
+            if (!fileExists('projetfederateurbackend')) {
                 sh 'mkdir backend'
             }
             dir('backend') {
@@ -30,7 +30,7 @@ pipeline {
         stage('Installer dépendances Backend') {
             steps {
                 script {
-                    dir('backend') {
+                    dir('projetfederateurbackend') {
                         sh 'npm install'
                     }
                 }
@@ -49,7 +49,7 @@ pipeline {
         stage('Docker Build & Push Backend') {
             steps {
                 script {
-                    dir('backend') {
+                    dir('projetfederateurbackend') {
                         sh 'docker build -t $DOCKER_HUB_USERNAME/backend-app .'
                         sh 'docker push $DOCKER_HUB_USERNAME/backend-app'
                     }
@@ -60,7 +60,7 @@ pipeline {
         stage('Déployer sur Heroku Backend') {
             steps {
                 script {
-                    dir('backend') {
+                    dir('projetfederateurbackend') {
                         sh 'heroku container:push web --app $HEROKU_APP_BACKEND'
                         sh 'heroku container:release web --app $HEROKU_APP_BACKEND'
                     }
