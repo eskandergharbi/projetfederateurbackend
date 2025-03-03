@@ -8,20 +8,24 @@ pipeline {
     }
 
     stages {
-        stage('Mettre à jour le dépôt Backend') {
-            steps {
-                script {
-                    dir('backend') { // Ensure all git commands are within the 'backend' directory
-                        if (fileExists('.git')) {
-                            sh 'git reset --hard'
-                            sh 'git pull origin main'
-                        } else {
-                            sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git .' // Clone into the current 'backend' directory
-                        }
-                    }
+     stage('Mettre à jour le dépôt Backend') {
+    steps {
+        script {
+            if (!fileExists('backend')) {
+                sh 'mkdir backend'
+            }
+            dir('backend') {
+                if (fileExists('.git')) {
+                    sh 'git reset --hard'
+                    sh 'git pull origin main'
+                } else {
+                    sh 'git clone https://github.com/eskandergharbi/projetfederateurbackend.git .' 
                 }
             }
         }
+    }
+}
+
 
         stage('Installer dépendances Backend') {
             steps {
